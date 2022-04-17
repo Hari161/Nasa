@@ -8,22 +8,33 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.nasa.Response.Nasamainresponse
 import com.example.nasa.Response.NasamainresponseItem
+import com.example.nasa.data.UserViewModel
+import com.example.nasa.data.itemsdb
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity(),Recyclerview_list.OnItemClickListener {
-   private val arrayList_response = ArrayList<NasamainresponseItem>()
-    private  var listAdapter: Recyclerview_list?=null
+class MainActivity : AppCompatActivity(), Recyclerview_list.OnItemClickListener {
+
+    private val arrayList_response = ArrayList<NasamainresponseItem>()
+    private var listAdapter: Recyclerview_list? = null
+    private lateinit var userViewModel: UserViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+
         rcv_list.layoutManager = LinearLayoutManager(this)
         if (supportActionBar != null) supportActionBar?.hide()
+
+        userViewModel=ViewModelProvider(this).get(UserViewModel::class.java)
         call_splash_Screen()
+
         if (!check_db_network_first()) {
             no_data_tv.visibility = View.VISIBLE
         } else {
@@ -31,7 +42,10 @@ class MainActivity : AppCompatActivity(),Recyclerview_list.OnItemClickListener {
         }
     }
 
-    private fun getDatabase_db() {
+    private fun getDatabase_db(response_item: NasamainresponseItem) {
+        val itemsdb = itemsdb(0,response_item.date,response_item.explanation,response_item.hdurl,
+            response_item.media_type,response_item.service_version,response_item.title,response_item.url)
+        userViewModel.addUser(itemsdb)
 
     }
 
@@ -45,6 +59,7 @@ class MainActivity : AppCompatActivity(),Recyclerview_list.OnItemClickListener {
             if (result.body() != null) {
                 for (i in 0 until result.body()!!.size) {
                     arrayList_response.add(result.body()!![i])
+                    getDatabase_db(result.body()!![i])
                 }
             }
         }
@@ -56,7 +71,7 @@ class MainActivity : AppCompatActivity(),Recyclerview_list.OnItemClickListener {
 
     fun initalize_Rcv() {
         if (arrayList_response.size > 0) {
-            listAdapter = Recyclerview_list(arrayList_response, this,this)
+            listAdapter = Recyclerview_list(arrayList_response, this, this)
             rcv_list.adapter = listAdapter
             listAdapter!!.notifyDataSetChanged()
         } else
@@ -73,7 +88,7 @@ class MainActivity : AppCompatActivity(),Recyclerview_list.OnItemClickListener {
         startActivity(intent)
     }
 
-    override fun onItemClick(bundle : Bundle) {
+    override fun onItemClick(bundle: Bundle) {
 
         val intent = Intent(this, DetailsPage::class.java)
         val extras = Bundle()
