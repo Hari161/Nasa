@@ -8,7 +8,9 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.nasa.Response.Nasamainresponse
 import com.example.nasa.Response.NasamainresponseItem
@@ -35,20 +37,26 @@ class MainActivity : AppCompatActivity(), Recyclerview_list.OnItemClickListener 
         userViewModel=ViewModelProvider(this).get(UserViewModel::class.java)
         call_splash_Screen()
 
-        if (!check_db_network_first()) {
+        if (!check_db_network_first() ) {
             no_data_tv.visibility = View.VISIBLE
         } else {
             api_call()
         }
     }
 
-    private fun getDatabase_db(response_item: NasamainresponseItem) {
+    private fun insertDatabase_db(response_item: NasamainresponseItem) {
         val itemsdb = itemsdb(0,response_item.date,response_item.explanation,response_item.hdurl,
             response_item.media_type,response_item.service_version,response_item.title,response_item.url)
         userViewModel.addUser(itemsdb)
 
     }
 
+
+//    private fun getdata_db(){
+//        userViewModel.readAllData.observe(lifecycleScope, Observer { itemsdb ->
+//
+//        })
+//    }
 
     private fun api_call() {
 
@@ -59,7 +67,7 @@ class MainActivity : AppCompatActivity(), Recyclerview_list.OnItemClickListener 
             if (result.body() != null) {
                 for (i in 0 until result.body()!!.size) {
                     arrayList_response.add(result.body()!![i])
-                    getDatabase_db(result.body()!![i])
+                    insertDatabase_db(result.body()!![i])
                 }
             }
         }
